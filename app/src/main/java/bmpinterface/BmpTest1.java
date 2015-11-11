@@ -6,13 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import usbprinter.PCLPrinter;
+import usbprinter.PSPrinter;
 
 /**
  * Created by diego on 11-09-15.
  */
 public class BmpTest1 {
     public static void main(String[] argv){
-        String path = "app/images/voto.bmp";
+        String path = "app/images/boat.png";
         File f = new File(path);
         FileInputStream fis = null;
         try{
@@ -22,13 +23,13 @@ public class BmpTest1 {
             e.printStackTrace();
         }
 
-        PCLPrinter printer = new PCLPrinter(fis);
+        PSPrinter printer = new PSPrinter(fis);
 
-        File file = new File("app/images/outbmp.txt");
+        File file = new File("app/images/out.txt");
         FileOutputStream fos = null;
         try{
             fos = new FileOutputStream(file);
-            fos.write(printer.printBmp());
+            fos.write(printer.print());
         }
         catch (IOException e){
             e.printStackTrace();

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import usbprinter.PCLPrinter;
+import usbprinter.PSPrinter;
 
 /**
  * Created by diego on 09-09-15.
@@ -29,18 +30,10 @@ public class BmpTranslator implements Translator{
         size = 120 + height*((width+1+7)*3);
     }
 
-    public void addImage(PCLPrinter printer){
+    public void addPCLImage(PCLPrinter printer){
 
-        int mod = (width*3)%4;
-        int realWeight = width*3 + mod; //ancho debe ser multiplo de 4
-        printer.addESC();
-        printer.addText("*r0f" + width + "s" + height + "T");
-        printer.addESC();
-        printer.addText("*t" + width*(9.6/2) + "h" + height*(9.6/2) + "V");
-        printer.addESC();
-        printer.addText("*r3A");
-        printer.addESC();
-        printer.addText("*b0M"); //Mode: unecode
+        int mod = (4 - (width*3)%4) %4;
+        int realWeight = width*3 + mod;
 
         for (int i = start + realWeight*height-1 ; i > start; i -= realWeight){
             printer.addESC();
@@ -52,15 +45,28 @@ public class BmpTranslator implements Translator{
                 //add(bmpData[i-j]); //~ if the bitmap is "one bit per pixel"
             }
             if (mod>0) {
-                for (int j = mod - 1; j >= 0; j--) {
+                for (int j = mod - 1; j >= 0; j--) { //FIX THIS
                     printer.add(bmpData[i-j]);
                 }
             }
         }
     }
 
-    public int getSize(){
+    @Override
+    public void addPSImage(PSPrinter printer) {
+        return;
+    }
+
+    public int getPCLSize(){
         return size;
+    }
+
+    public int getWidth(){
+        return width;
+    }
+
+    public int getHeight(){
+        return height;
     }
 
 

@@ -68,6 +68,10 @@ public class BytesAdapter {
         return getData()[i];
     }
 
+    public int getUnsignedByte(int i){
+        return getData()[i] & 0xFF;
+    }
+
     public int length(){
         return data.length;
     }
@@ -76,24 +80,14 @@ public class BytesAdapter {
         int mask = 0x00;
         for (int i=0; i<bitDepth; i++){
             mask = (mask | (0x80>>i));
+
         }
-        return (byte)((getByte(offset) & (mask>>(bitDepth*pos)))>>bitDepth*(8/bitDepth-bitDepth*pos-1));
+        return (byte)((getByte(offset) & (mask>>(bitDepth*pos)))>>(8-bitDepth*(pos+1)));
 
     }
 
     public void setByte(int i, byte b){
         data[i] = b;
     }
-
-    public void unfilterScanline(int i, int width){
-        int filterType = data[i];
-        if (filterType==0){
-            return;
-        }
-        else if (filterType==1){
-
-        }
-    }
-
 }
 

@@ -9,7 +9,6 @@ import bmpinterface.Translator;
 
 public class PCLPrinter implements UsbPrinter {
     private Translator translator;
-    private InputStream is;
     private byte[] fileData;
     private byte[] messageData;
     private int cursor;
@@ -25,14 +24,16 @@ public class PCLPrinter implements UsbPrinter {
         }
         cursor = 0;
     }
-    public byte[] printBmp(){
+
+
+    public byte[] print(){
         translator = new PngTranslator(fileData);
         return printFile();
     }
 
     public byte[] printFile() {
 
-        messageData = new byte[translator.getSize()];
+        messageData = new byte[translator.getPCLSize()];
         addUEL("PCL");
         resetPrinter();
         addUnitOfMeasure(600);  //Unit-of-Measure (600 PCL units per inch)
@@ -43,7 +44,7 @@ public class PCLPrinter implements UsbPrinter {
         int[] dataImage = {2, 3, 0, 8, 8, 8};
         configureImageData(6, dataImage);
         addDotsPerInch(75);
-        translator.addImage(this);
+        addImageFile();
         addESC();
         addText("*rC"); //End raster graphics
         addESC();
@@ -53,16 +54,30 @@ public class PCLPrinter implements UsbPrinter {
 
     }
 
+    public void addImageFile(){
+        addESC();
+        addText("*r0f" + translator.getWidth() + "s" + translator.getHeight() + "T");
+        addESC();
+        addText("*t" + translator.getWidth() * (9.6 / 2) + "h" + translator.getHeight()*(9.6/2) + "V");
+        addESC();
+        addText("*r3A");
+        addESC();
+        addText("*b0M"); //Mode: unecode
+        translator.addPCLImage(this);
+    }
     public void add(byte b) {
         messageData[cursor] = b;
         cursor++;
     }
+
 
     public void add(byte[] b){
         for (int i=0; i< b.length; i++){
             add(b[i]);
         }
     }
+
+    public void add(double d) { add((byte) (d+0.5)); }
 
     public void add(int i) {
         add((byte) i);

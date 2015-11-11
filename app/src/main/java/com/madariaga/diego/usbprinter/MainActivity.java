@@ -8,24 +8,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import bmpinterface.PngTranslator;
 import usbprinter.PCLPrinter;
 
 public class MainActivity extends Activity {
@@ -100,7 +107,39 @@ public class MainActivity extends Activity {
     private static final String ACTION_USB_PERMISSION =
             "com.madariaga.diego.usbprinter.USB_PERMISSION";
     private static BroadcastReceiver mUsbReceiver = null;
+    private View myView;
 
+
+    public void onClicklScreen(View view){
+        myView = this.findViewById(R.id.main);
+        myView.setDrawingCacheEnabled(true);
+        Bitmap b = myView.getDrawingCache();
+        File sd = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES);
+
+
+        File f = new File(sd, "capture.png");
+        TextView tv = (TextView) findViewById(R.id.hello);
+        try {
+            if (sd.canWrite()) {
+                tv.setText("Can write");
+                f.createNewFile();
+                OutputStream os = new FileOutputStream(f);
+                b.compress(Bitmap.CompressFormat.PNG, 90, os);
+                os.close();
+            }
+            else{
+                tv.setText("Can't write");
+            }
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        myView.setDrawingCacheEnabled(false);
+    }
     public void onClickCheck(View view){
         // Intent mIntent = new Intent();
         //mIntent.setAction(ACTION_USB_PERMISSION);
@@ -122,10 +161,10 @@ public class MainActivity extends Activity {
             tv.setText(tv.getText() +" "+ device.getVendorId()+" "+device.getProductId()+" "+device.getDeviceId());
 
             Resources resources = this.getResources();
-            InputStream is = resources.openRawResource(R.raw.votopng);
+            InputStream is = resources.openRawResource(R.raw.lena);
 
             PCLPrinter printer = new PCLPrinter(is);
-            byte[] bytes = printer.printBmp();
+            byte[] bytes = printer.print();
             int TIMEOUT = 10000;
             boolean forceClaim = true;
 
