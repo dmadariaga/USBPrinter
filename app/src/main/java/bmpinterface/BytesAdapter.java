@@ -85,6 +85,24 @@ public class BytesAdapter {
         return (byte)((getByte(offset) & (mask>>(bitDepth*pos)))>>(8-bitDepth*(pos+1)));
 
     }
+    public static String toHexString(byte b){
+
+        String out = Integer.toHexString(b & 0xFF) + "0";
+        if ( (b & 0xFF) < 0x10 ){
+            out = "0" + out;
+        }
+        return out.substring(0,2);
+    }
+
+    public static String toHexString(int i){
+
+        String out = Integer.toHexString(i) + "0";
+        if ( (i) < 0x10 ){
+            out = "0" + out;
+        }
+        return out.substring(0,2);
+    }
+
 
     public void setByte(int i, byte b){
         data[i] = b;

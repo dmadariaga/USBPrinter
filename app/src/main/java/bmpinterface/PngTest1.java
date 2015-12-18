@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class PngTest1 {
     public static void main(String[] argv) {
-        String path = "app/images/boat.png";
+        String path = "app/images/papagayo3.png";
         File f = new File(path);
         byte[] fileData = null;
         FileInputStream fis = null;
@@ -31,11 +31,11 @@ public class PngTest1 {
 
         PngTranslator p = new PngTranslator(fileData);
 
-        File file = new File("app/images/compressout.txt");
+        File file = new File("app/images/compressoutpix.txt");
         FileOutputStream fos = null;
         try{
             fos = new FileOutputStream(file);
-            fos.write(p.decompressedData.getData());
+            fos.write(p.pixels);
         }
         catch (IOException e){
             e.printStackTrace();

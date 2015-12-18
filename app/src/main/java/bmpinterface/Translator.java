@@ -2,7 +2,7 @@ package bmpinterface;
 
 import usbprinter.PCLPrinter;
 import usbprinter.PSPrinter;
-import usbprinter.UsbPrinter;
+import usbprinter.USBPrinter;
 
 /**
  * Created by diego on 25-09-15.

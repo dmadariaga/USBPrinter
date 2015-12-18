@@ -13,7 +13,7 @@ import usbprinter.PSPrinter;
  */
 public class BmpTest1 {
     public static void main(String[] argv){
-        String path = "app/images/boat.png";
+        String path = "app/images/colorbaboon.png";
         File f = new File(path);
         FileInputStream fis = null;
         try{
@@ -24,8 +24,9 @@ public class BmpTest1 {
         }
 
         PSPrinter printer = new PSPrinter(fis);
+        //PCLPrinter printer = new PCLPrinter(fis);
 
-        File file = new File("app/images/out.txt");
+        File file = new File("app/images/out.txt.ps");
         FileOutputStream fos = null;
         try{
             fos = new FileOutputStream(file);

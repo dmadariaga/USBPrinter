@@ -27,7 +27,10 @@ public class PngTranslator implements Translator {
     public byte[] pixels;
     public int[] background = {0xFF, 0xFF, 0xFF};
 
-
+    /**
+     *
+     * @param fileData
+     */
     public PngTranslator(byte[] fileData){
         //checkSignature
         cursor = 0;
@@ -35,7 +38,7 @@ public class PngTranslator implements Translator {
         int ihdr = pngData.find(8, "IHDR".getBytes());
         pixelsWidth = pngData.bigEndianToInt(ihdr+4,4);
         pixelsHeight = pngData.bigEndianToInt(ihdr+8,4);
-        dataWidth = pixelsWidth*3; //+ pixelsWidth%4;  //ancho debe ser multiplo de 4
+        dataWidth = pixelsWidth*3;                      //ancho debe ser multiplo de 4
         bitDepth = pngData.bigEndianToInt(ihdr+12,1);   //Bit depth is a single-byte integer giving the number of bits per sample or per palette index (not per pixel).
                                                         //Valid values are 1, 2, 4, 8, and 16, although not all values are allowed for all color types.
 
@@ -77,6 +80,9 @@ public class PngTranslator implements Translator {
 
     }
 
+    /**
+     * Save the information about the color palette used if the PLTE chunk exists.
+     */
     public void savePalette(){
         int plte = pngData.find(cursor, "PLTE".getBytes());
         if (plte>=0){
@@ -89,6 +95,9 @@ public class PngTranslator implements Translator {
         }
     }
 
+    /**
+     * Save the information about the background color if the bKGD chunk exists.
+     */
     public void saveBackground(){
         int bkgd = pngData.find(cursor, "bKGD".getBytes());
         if (bkgd>=0){
@@ -143,10 +152,28 @@ public class PngTranslator implements Translator {
         }
     }
 
+    /**
+     * Add to the PS printer data stream the bytes corresponding to the PNG image file.
+     * @param printer       PS printer to send the image data.
+     */
     public void addPSImage(PSPrinter printer){
-        addGrayScale(printer);
+        switch (colorType){ // again
+            case 0: addGrayScale(printer);
+                break;
+            case 2: addRGB(printer);
+                break;
+            case 3 : addWithPalette(printer);
+                break;
+            case 6: addRGBA(printer);
+                break;
+        }
+
     }
 
+    /**
+     * Add to the PCL printer data stream the bytes corresponding to the PNG image file.
+     * @param printer       PCL printer to send the image data.
+     */
     public void addPCLImage(PCLPrinter printer){
 
         switch (colorType){ // again
@@ -162,6 +189,11 @@ public class PngTranslator implements Translator {
 
     }
 
+    /**
+     * Add to the PCL printer the data from a PNF file that uses a color palette to describe
+     * the pixels.
+     * @param printer       PCL printer to send the image data.
+     */
     public void addWithPalette(PCLPrinter printer){
         int pixCursor = 0;
         int mod = (4 - (dataWidth)%4) %4;
@@ -181,6 +213,42 @@ public class PngTranslator implements Translator {
         }
     }
 
+    /**
+     * Add to the PS printer the data from a PNF file that uses a color palette to describe
+     * the pixels.
+     * @param printer       PS printer to send the image data.
+     */
+    public void addWithPalette(PSPrinter printer){
+        int pixCursor = 0;
+        printer.addText(pixelsWidth +" "+ pixelsHeight + " scale\r");
+        printer.addText(pixelsWidth +" "+ pixelsHeight +" "+ 8);
+        printer.addText(" ["+ pixelsWidth +" 0 0 -"+pixelsHeight+" 0 "+pixelsHeight+"]\r");
+        printer.addText("{<\r");
+        for (int i=0; i<pixelsHeight; i++){
+            for (int j=0; j<pixelsWidth; j++) {
+                if ((pixels[pixCursor]&0xFF) >= palette.length || (pixels[pixCursor]&0xFF)<0){  //OUT OF RANGE
+                    printer.addText(BytesAdapter.toHexString(background[0]));
+                    printer.addText(BytesAdapter.toHexString(background[1]));
+                    printer.addText(BytesAdapter.toHexString(background[2]));
+                }
+                else {
+                    printer.addText(BytesAdapter.toHexString(palette[pixels[pixCursor] & 0xFF][0]));
+                    printer.addText(BytesAdapter.toHexString(palette[pixels[pixCursor] & 0xFF][1]));
+                    printer.addText(BytesAdapter.toHexString(palette[pixels[pixCursor] & 0xFF][2]));
+
+                }
+                pixCursor++;
+            }
+            printer.addText("\r");
+        }
+        printer.addText(">}\r");
+        printer.addText("false 3\rcolorimage\r");
+    }
+
+    /**
+     * Add to the PCL printer the data from a PNF file that describes each pixel with an RGB tuple.
+     * @param printer       PCL printer to send the image data.
+     */
     public void addRGB(PCLPrinter printer){
         int pixCursor = 0;
         int mod = (4 - (dataWidth)%4) %4;
@@ -197,6 +265,30 @@ public class PngTranslator implements Translator {
 
     }
 
+    /**
+     * Add to the PS printer the data from a PNF file that describes each pixel with an RGB tuple.
+     * @param printer       PS printer to send the image data.
+     */
+    public void addRGB(PSPrinter printer){
+        int width = (int)((double)pixelsWidth/ (8.0/bitDepth) +0.5);
+        printer.addText(pixelsWidth +" "+ pixelsHeight + " scale\r");
+        printer.addText(pixelsWidth +" "+ pixelsHeight +" "+ bitDepth);
+        printer.addText(" ["+ pixelsWidth +" 0 0 -"+pixelsHeight+" 0 "+pixelsHeight+"]\r");
+        printer.addText("{<\r");
+        for (int i=0; i<pixelsHeight; i++){
+            for (int j=0; j<width*3; j++) {
+                printer.addText( BytesAdapter.toHexString(decompressedData.getByte((width * 3 + 1) * i + (j+1))) );
+            }
+            printer.addText("\r");
+        }
+        printer.addText(">}\r");
+        printer.addText("false 3\ncolorimage\r");
+    }
+
+    /**
+     * Add to the PCL printer the data from a PNF file that describes each pixel with an RGBA tuple.
+     * @param printer       PCL printer to send the image data.
+     */
     public void addRGBA(PCLPrinter printer){
         int pixCursor = 0;
         int mod = (4 - (dataWidth)%4) %4;
@@ -217,24 +309,60 @@ public class PngTranslator implements Translator {
         }
 
     }
+
+    /**
+     * Add to the PS printer the data from a PNF file that describes each pixel with an RGBA tuple.
+     * @param printer       PS printer to send the image data.
+     */
+    public void addRGBA(PSPrinter printer){
+        int pixCursor = 0;
+        printer.addText(pixelsWidth +" "+ (pixelsHeight-1) + " scale\n");
+        printer.addText(pixelsWidth + " " + (pixelsHeight-1) + " " + bitDepth);
+        printer.addText(" [" + pixelsWidth + " 0 0 -"+(pixelsHeight-1)+" 0 "+(pixelsHeight-1)+"]\n");
+        printer.addText("{<\n");
+        for (int i=0; i<pixelsHeight ; i++){
+
+            for (int j = 0; j<pixelsWidth; j++ ) {
+                double r = (pixels[pixCursor++] & 0xFF)/255.0;
+                double g = (pixels[pixCursor++] & 0xFF)/255.0;
+                double b = (pixels[pixCursor++] & 0xFF)/255.0;
+                double a = (pixels[pixCursor++] & 0xFF)/255.0;
+
+                printer.addText( BytesAdapter.toHexString( (int)((a*r + (1-a)*(background[0]/255.0))*255 )) );   //R
+                printer.addText( BytesAdapter.toHexString( (int)((a*g + (1-a)*(background[1]/255.0))*255 )) );   //G
+                printer.addText( BytesAdapter.toHexString( (int)((a*b + (1-a)*(background[2]/255.0))*255 )) );   //B
+
+            }
+            printer.addText("\n");
+        }
+        printer.addText(">}\n");
+        printer.addText("false 3\ncolorimage\n");
+    }
+
+    /**
+     * Add to the PS printer the data from a PNF file that describes each pixel with a Gray Scale Sample.
+     * @param printer       PS printer to send the image data.
+     */
     public void addGrayScale(PSPrinter printer){
         int width = (int)((double)pixelsWidth/ (8.0/bitDepth) +0.5);
-        printer.addText("100 200 translate");
-        printer.addText(pixelsWidth +" "+ pixelsHeight + " scale\n");
-        printer.addText(pixelsWidth +" "+ pixelsHeight +" "+ bitDepth);
-        printer.addText(" ["+ pixelsWidth +" 0 0 -"+pixelsHeight+" 0 "+pixelsHeight+"]\n");
+        printer.addText(pixelsWidth +" "+ (pixelsHeight-1) + " scale\n");
+        printer.addText(pixelsWidth + " " + (pixelsHeight-1) + " " + bitDepth);
+        printer.addText(" [" + pixelsWidth + " 0 0 -"+(pixelsHeight-1)+" 0 "+(pixelsHeight-1)+"]\n");
         printer.addText("{<\n");
         for (int i=0; i<pixelsHeight; i++){
             for (int j=0; j<width; j++) {
-                printer.addText(("0"+Integer.toHexString(0xFF & decompressedData.getByte( (width+1)*i+1+j ))).substring(1));
+                printer.addText( BytesAdapter.toHexString(decompressedData.getByte((width + 1) * i + (j + 1))) );
             }
             printer.addText("\n");
         }
         printer.addText(">}\n");
         printer.addText("image\n");
-        printer.addText("showpage\n");
     }
 
+    /**
+     * Add to the PCL printer the data from a PNF file that describes each pixel with a Gray Scale Sample.
+     * @param printer       PCL printer to send the image data.
+     */
     public void addGrayScale(PCLPrinter printer){
         int factor = 0;
         switch (bitDepth){
@@ -252,6 +380,7 @@ public class PngTranslator implements Translator {
 
         int pixCursor = 0;
         int mod = (4 - (dataWidth)%4) %4;
+        System.out.println(mod);
         for (int i=0; i<pixelsHeight ; i++) {
             printer.addESC();
             printer.addText("*b" + (dataWidth + mod) + "W");
@@ -265,7 +394,7 @@ public class PngTranslator implements Translator {
     }
 
     public void fillSpace(int mod, PCLPrinter printer){
-        for (int i = 0; i <= mod; i++){
+        for (int i = 0; i < mod; i++){
             printer.add(0);
         }
     }

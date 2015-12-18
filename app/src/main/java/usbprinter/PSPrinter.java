@@ -9,46 +9,31 @@ import bmpinterface.Translator;
 /**
  * Created by diego on 11-11-15.
  */
-public class PSPrinter implements UsbPrinter{
-    private Translator translator;
-    private byte[] fileData;
-    private byte[] messageData;
-    private int cursor;
+public class PSPrinter extends USBPrinter{
+    private int pageSize;
 
     public PSPrinter(InputStream is) {
-        try {
-            int len = is.available();
-            fileData = new byte[len];
-            is.read(fileData);
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        cursor = 0;
+        super(is);
     }
 
-    public byte[] print(){
-        translator = new PngTranslator(fileData);
-        return printFile();
-    }
-
-    public byte[] printFile(){
-        messageData = new byte[translator.getPCLSize()]; //GETPSSIZE
-        addText("%!");
+    @Override
+    public byte[] getPrintData(){
+        messageData = new byte[translator.getPCLSize()*2]; //GETPSSIZE
+        addUEL("POSTSCRIPT");
+        addText("%!PS-Adobe-3.0\r");
+        addPosition();
         translator.addPSImage(this);
+        addText("showpage\r");
+        addText("\004");
         return messageData;
     }
 
-
-    public void add(byte b) {
-        messageData[cursor] = b;
-        cursor++;
-    }
-
-    public void addText(String text){
-        byte[] byteText = text.getBytes();
-        for (int i=0; i<byteText.length; i++){
-            add(byteText[i]);
-        }
+    /**
+     * Add to the printer data stream the bytes corresponding to the PCL command for
+     * setting the position where the image will be placed on the page.
+     */
+    @Override
+    public void addPosition(){
+        addText(xPosition + " " + yPosition + " translate\r");
     }
 }
