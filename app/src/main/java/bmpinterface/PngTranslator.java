@@ -153,7 +153,7 @@ public class PngTranslator implements Translator {
     }
 
     /**
-     * Add to the PS printer data stream the bytes corresponding to the PNG image file.
+     * Add to the PS printer data stream the corresponding bytes to the PNG image file.
      * @param printer       PS printer to send the image data.
      */
     public void addPSImage(PSPrinter printer){
@@ -167,11 +167,10 @@ public class PngTranslator implements Translator {
             case 6: addRGBA(printer);
                 break;
         }
-
     }
 
     /**
-     * Add to the PCL printer data stream the bytes corresponding to the PNG image file.
+     * Add to the PCL printer data stream the corresponding bytes to the PNG image file.
      * @param printer       PCL printer to send the image data.
      */
     public void addPCLImage(PCLPrinter printer){

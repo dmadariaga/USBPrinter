@@ -164,7 +164,7 @@ public class MainActivity extends Activity {
             Resources resources = this.getResources();
             InputStream is = resources.openRawResource(R.raw.colorbaboon);
 
-            PSPrinter printer = new PSPrinter(is);
+            PCLPrinter printer = new PCLPrinter(is);
             byte[] bytes = printer.print();
             int TIMEOUT = 10000;
             boolean forceClaim = true;
@@ -204,27 +204,15 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-
-        // Intent mIntent = new Intent();
-        //mIntent.setAction(ACTION_USB_PERMISSION);
-        //mUsbReceiver.onReceive(this,mIntent);
-
         HashMap<String, UsbDevice> usbDevices = manager.getDeviceList();
         String[] array = usbDevices.keySet().toArray(new String[usbDevices.keySet().size()]);
 
         Arrays.sort(array);
 
-        //ArrayAdapter<String> adaptor = new ArrayAdapter<String>(getApplicationContext(), R.layout.list_item, array);
-        //mListUsbAndroid.setAdapter(adaptor);
-        TextView tv = (TextView) findViewById(R.id.hello);
-        tv.setText("Device List (" + usbDevices.size() + "):");
-
         Iterator<UsbDevice> deviceIterator = usbDevices.values().iterator();
         while(deviceIterator.hasNext()) {
             UsbDevice device = deviceIterator.next();
-            tv.setText(tv.getText() + " " + device.getVendorId() + " " + device.getProductId() + " " + device.getDeviceId());
 
-            Resources resources = this.getResources();
             InputStream is = null;
             try {
                 is = openFileInput(FILENAME);
@@ -241,7 +229,7 @@ public class MainActivity extends Activity {
             UsbEndpoint endpoint = intf.getEndpoint(0);
             UsbDeviceConnection connection = manager.openDevice(device);
             connection.claimInterface(intf, forceClaim);
-            //connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT);
+
             int bytesToSend = bytes.length;
             int offset = 0;
             while (bytesToSend >= 15000) {
@@ -251,8 +239,6 @@ public class MainActivity extends Activity {
             }
 
             connection.bulkTransfer(endpoint, bytes, offset, bytesToSend, TIMEOUT);
-
-            tv.setText(tv.getText() + " printing...");
 
             deleteFile(FILENAME);
         }

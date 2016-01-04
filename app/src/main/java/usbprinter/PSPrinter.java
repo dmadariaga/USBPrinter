@@ -1,10 +1,6 @@
 package usbprinter;
 
-import java.io.IOException;
 import java.io.InputStream;
-
-import bmpinterface.PngTranslator;
-import bmpinterface.Translator;
 
 /**
  * Created by diego on 11-11-15.

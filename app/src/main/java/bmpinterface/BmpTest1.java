@@ -23,10 +23,10 @@ public class BmpTest1 {
             e.printStackTrace();
         }
 
-        PSPrinter printer = new PSPrinter(fis);
-        //PCLPrinter printer = new PCLPrinter(fis);
+       // PSPrinter printer = new PSPrinter(fis);
+        PCLPrinter printer = new PCLPrinter(fis);
 
-        File file = new File("app/images/out.txt.ps");
+        File file = new File("app/images/out.txt");
         FileOutputStream fos = null;
         try{
             fos = new FileOutputStream(file);

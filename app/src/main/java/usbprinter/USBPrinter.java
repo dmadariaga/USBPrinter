@@ -116,9 +116,9 @@ public abstract class USBPrinter {
     public void addUEL(String language){ //Universal Exit Language, control to PJL
         addESC();
         addText("%-12345X");
-        addText("@PJL Enter Language = " + language);
-        add((byte)0x0D);
-        add((byte)0x0A);
+        //addText("@PJL Enter Language = " + language);
+        //add((byte)0x0D);
+        //add((byte)0x0A);
     }
 
     /**
@@ -135,7 +135,7 @@ public abstract class USBPrinter {
 
     /**
      * Set the scaling to apply on the image. This scaling is specified with values for
-     * width and height scale.     *
+     * width and height scale.
      * @param x     Value to apply width scaling
      * @param y     Value to apply height scaling
      */

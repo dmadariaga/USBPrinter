@@ -1,10 +1,6 @@
 package usbprinter;
 
-import java.io.IOException;
 import java.io.InputStream;
-
-import bmpinterface.BmpTranslator;
-import bmpinterface.PngTranslator;
 import bmpinterface.Translator;
 
 public class PCLPrinter extends USBPrinter {
@@ -27,7 +23,7 @@ public class PCLPrinter extends USBPrinter {
         unitOfMeasure = 300;
         dotsPerInch = 75;
         pageSize = 2;
-        xPosition = yPosition = 0;
+        xPosition = yPosition = 100;
         xScale = yScale = 0.5;
         int defaultData[] = {2, 3, 0, 8, 8, 8};
         setDataImage(defaultData);
@@ -111,6 +107,7 @@ public class PCLPrinter extends USBPrinter {
         return messageData;
     }
 
+
     /**
      * Add to the printer data stream the PCL commands to send the pixels of the selected image.
      */
@@ -127,7 +124,7 @@ public class PCLPrinter extends USBPrinter {
     }
 
     /**
-     * Add to the printer data stream the bytes corresponding to the PCL command for
+     * Add to the printer data stream the corresponding bytes to the PCL command for
      * setting the position where the image will be placed on the page.
      */
     @Override
@@ -142,7 +139,7 @@ public class PCLPrinter extends USBPrinter {
     }
 
     /**
-     * Add to the printer data stream the bytes corresponding to the PCL command for
+     * Add to the printer data stream the corresponding bytes to the PCL command for
      * setting the page size to use.
      */
     public void addPageSize(){
@@ -155,7 +152,7 @@ public class PCLPrinter extends USBPrinter {
 
 
     /**
-     * Add to the printer data stream the bytes corresponding to the PCL command for
+     * Add to the printer data stream the corresponding bytes to the PCL command for
      * setting the value to the unit of measure used.
      */
     public void addUnitOfMeasure(){
@@ -164,7 +161,7 @@ public class PCLPrinter extends USBPrinter {
     }
 
     /**
-     * Add to the printer data stream the bytes corresponding to the Configure Image Data
+     * Add to the printer data stream the corresponding bytes to the Configure Image Data
      * command (CID) with the values designated.
      */
     public void addConfigureImageData(){
@@ -185,7 +182,7 @@ public class PCLPrinter extends USBPrinter {
     }
 
     /**
-     * Add to the printer data stream the bytes corresponding to the RESET command. ( <ESC>E )
+     * Add to the printer data stream the corresponding bytes to the RESET command. ( <ESC>E )
      */
     public void resetPrinter(){
         addESC();
